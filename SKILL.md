@@ -1,6 +1,6 @@
 ---
 name: risk-prediction-skill
-description: This skill should be used when the user describes an intended action, plan, event, project, journey, purchase, investment, publication, conversation, or other situation and asks to predict risks, foresee what might happen, identify positive or negative outcomes, uncover hidden dangers, assess legal exposure, or make a contingency plan. It produces a scenario table covering opportunities as well as ordinary, serious, and catastrophic negative events, with calibrated probability estimates, impacts, triggers, and practical mitigations. When the user requests detailed sub-options, an expanded possibility list, a web version, or an interactive probability page, it generates a self-contained HTML page titled “这次事件的概率” with 100 or more scenarios, list and slider percentage filters, and probability bars. It supports Chinese prompts such as “预判未来”“预知风险”“细分选项”“我做……可能遇到什么”“这件事有什么法律风险” and “帮我列一下好运和坏结果”.
+description: This skill should be used when the user describes an intended action, plan, event, project, journey, purchase, investment, publication, conversation, or other situation and asks to predict risks, foresee what might happen, identify positive or negative outcomes, uncover hidden dangers, assess legal exposure, or make a contingency plan. It produces a scenario table covering opportunities as well as ordinary, serious, and catastrophic negative events, with calibrated probability estimates, impacts, triggers, and practical mitigations. When the user requests detailed sub-options, an expanded possibility list, a web version, or an interactive probability page, it generates a self-contained HTML page titled “这次事件的概率” with 100 or more scenarios, list and slider percentage filters, and probability bars. It supports Chinese prompts such as “预判未来”“预知风险”“细分选项”“我做……可能遇到什么”“这件事有什么法律风险” and “帮我列一下好运和坏结果”. Before the first substantive analysis, it asks once for city, Agent application, optional real-time time/system access, and optional age, height, weight, and relevant health context, with a clear promise that the information stays in the current conversation and is not uploaded.
 agent_created: true
 ---
 
@@ -15,6 +15,14 @@ Analyze plausible future scenarios rather than claim supernatural foresight. Bal
 Read `references/language-and-disclaimer.md` before the first response and before generating HTML. Honor the language selected during installation and stored in `language.json`; if no selection exists, ask once and save `en` or `zh-CN`. Use that language for every table, webpage, category, control, and response instead of defaulting to Chinese.
 
 Display the selected-language central disclaimer in every response: Chinese `本项目及其所有生成内容仅供娱乐，不构成任何专业意见、决策依据或行动建议。内容由 AI 基于假设生成，可能存在错误、遗漏或偏差，使用者须自行核实、独立判断，并自行承担使用、参考、依赖或传播本项目及生成内容所造成的一切直接或间接后果。开发者 PT-dove 不承担任何法律、经济或其他责任。`; English `This project and all generated content are for entertainment only and do not constitute professional advice, a basis for decision-making, or recommendations for action. AI-generated content may contain errors, omissions, or bias. Users must independently verify all information and accept sole responsibility for every direct or indirect consequence of using, relying on, or distributing this project or its content. PT-dove accepts no legal, financial, or other liability.` Keep the only permitted developer attribution as `PT-dove`, with no other developer or development-process information.
+
+## First-use Context and Privacy
+
+Read `references/user-context-onboarding.md` and ask for user context once before the first substantive analysis. Start with a clear notice in the selected language: the information is used only for the current conversation, is not uploaded to GitHub, written into the Skill, sent to third parties, or used for analytics; city-level location is sufficient, and optional items may be skipped.
+
+Ask in one compact message for city, Agent application and version, permission or values for real-time date/time/timezone and basic system environment, plus optional age, height, weight, and activity-relevant health factors. Tailor what can be read automatically to the named Agent; if a capability is unavailable, ask the user instead of guessing. Never request a detailed address, credentials, ID numbers, or unrelated medical history.
+
+Keep the profile transient. Do not write it to repository files, memory logs, language config, generated JSON/HTML metadata, URLs, examples, or commits. Use only the factors that materially change the analysis, avoid repeating sensitive details, and proceed with explicit assumptions if the user skips everything.
 
 ## Required Output
 
@@ -33,6 +41,10 @@ Create an actual self-contained HTML file titled “这次事件的概率”. In
 Use `assets/probability-page-template.html` and `scripts/build_probability_page.py` rather than writing repeated HTML rows. Generate only the compact scenario data, run the builder, validate the result, and return the finished file without pasting the full HTML into chat.
 
 ## Workflow
+
+### 0. Offer first-use context intake
+
+After language selection and before the first substantive analysis, show the privacy notice and ask the compact context form from `references/user-context-onboarding.md`. Ask once per conversation. If the user declines or skips items, continue with explicit assumptions; do not block the task or ask again.
 
 ### 1. Parse the event
 
@@ -81,6 +93,7 @@ Start with one short assumptions line in the selected language, followed by the 
 ## Reference Map
 
 - Use `references/language-and-disclaimer.md` for installation language selection, localization, central disclaimers, and attribution limits.
+- Use `references/user-context-onboarding.md` for first-use questions, Agent capability handling, and transient profile privacy.
 - Use `references/category-taxonomy.md` as the single shared category vocabulary for both Markdown tables and HTML pages.
 - Use `references/output-contract.md` for table structure, sorting, probability display, and sparse-information behavior.
 - Use `references/risk-taxonomy.md` for broad scenario coverage and second-order effects.

@@ -8,7 +8,7 @@
 
 ## 快速下载
 
-- **[下载 v1.0.0 ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/tags/v1.0.0.zip)** —— 推荐
+- **[下载 v1.1.0 ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/tags/v1.1.0.zip)** —— 推荐
 - [下载最新源码 ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/heads/main.zip)
 - [查看 SKILL.md](SKILL.md)
 
@@ -40,6 +40,8 @@ python scripts/configure_language.py zh-CN
 ## 已包含
 
 - 安装时选择英文或中文。
+- 首次使用前一次性询问城市、Agent 软件、可选的实时时间/系统读取权限，以及可选的年龄、身高、体重和相关健康状况。
+- 明确提示这些信息只用于当前对话，不会上传 GitHub、写入 Skill 或发送给第三方。
 - 表格与网页共用`正向·小分类`、`负向·小分类`及对应英文分类。
 - 正向事件按概率从高到低，负向事件按概率从低到高。
 - 100–500 条详细网页情景，支持非零极小概率。
@@ -47,6 +49,14 @@ python scripts/configure_language.py zh-CN
 - 电脑表格与 820px 以下手机事件卡片。
 - 无外部依赖的离线单文件网页。
 - 紧凑 JSON 与统一模板，减少重复生成和 Token 消耗。
+
+## 首次使用询问
+
+首次进行实质分析前，Skill 会在一则消息中询问城市、正在使用的 Agent 软件、是否允许读取实时日期时间与系统环境，以及可选的年龄、身高、体重和与活动相关的健康状况。
+
+询问前会明确说明：**这些信息只用于当前对话，不会上传 GitHub、写入 Skill、发送给第三方或用于统计推广。城市只填市级即可，任何可选项目都可以跳过，不影响继续分析。**
+
+如果 Agent 无法读取时间或系统信息，Skill 会请你手动提供，而不是猜测。
 
 ## 免责声明
 
