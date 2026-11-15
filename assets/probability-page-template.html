@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="author" content="PT-dove">
+  <meta name="description" content="事件可能性与概率情景分析">
+  <title>这次事件的概率</title>
+  <style>
+    :root {
+      --color-bg: #f5f3ee;
+      --color-surface: #fffdfa;
+      --color-surface-alt: #ebe8e1;
+      --color-text: #242229;
+      --color-muted: #66616d;
+      --color-accent: #6938d3;
+      --color-accent-soft: #eee8fa;
+      --color-border: #d5d0c9;
+      --color-header: #302d35;
+      --font-display: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+      --font-body: "IBM Plex Sans", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+      --font-mono: "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 16px;
+      --space-4: 24px;
+      --space-5: 40px;
+      --space-6: 64px;
+      --radius: 4px;
+      --focus: 0 0 0 3px #fffdfa, 0 0 0 5px #6938d3;
+      --ease: 180ms ease-out;
+    }
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      background-color: var(--color-bg);
+      background-image:
+        linear-gradient(rgba(48,45,53,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(48,45,53,.035) 1px, transparent 1px);
+      background-size: 32px 32px;
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: none; box-shadow: var(--focus); }
+    .skip-link { position: absolute; left: 16px; top: -80px; z-index: 20; background: var(--color-text); color: var(--color-surface); padding: 10px 16px; }
+    .skip-link:focus { top: 12px; }
+    .shell { width: min(1560px, calc(100% - 48px)); margin: 0 auto; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-5); align-items: end; padding: 56px 0 28px; border-bottom: 2px solid var(--color-text); }
+    .eyebrow { margin: 0 0 var(--space-3); color: var(--color-accent); font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { max-width: 900px; margin: 0; font-family: var(--font-display); font-size: clamp(48px, 7vw, 96px); font-weight: 800; letter-spacing: -.045em; line-height: 1.08; }
+    .event-name { margin: var(--space-4) 0 0; font-size: clamp(18px, 2vw, 25px); font-weight: 650; }
+    .assumptions { max-width: 850px; margin: var(--space-2) 0 0; color: var(--color-muted); }
+    .total { min-width: 190px; padding-left: var(--space-4); border-left: 5px solid var(--color-accent); }
+    .total strong { display: block; color: var(--color-accent); font-family: var(--font-mono); font-size: clamp(52px, 7vw, 88px); font-variant-numeric: tabular-nums; letter-spacing: -.07em; line-height: 1; }
+    .total span { display: block; margin-top: var(--space-2); font-weight: 700; }
+    .notice { margin: var(--space-4) 0; padding: 14px 18px; border-left: 4px solid var(--color-accent); background: var(--color-accent-soft); font-weight: 750; text-align: center; }
+    .controls { display: grid; grid-template-columns: 1.2fr 1.2fr 1fr auto; gap: var(--space-3); align-items: end; margin: var(--space-5) 0 var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); background: var(--color-surface); }
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 13px; font-weight: 750; }
+    .field input, .field select { width: 100%; min-height: 46px; padding: 9px 12px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); color: var(--color-text); }
+    .field input::placeholder { color: var(--color-muted); }
+    .selector-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); align-items: center; }
+    .mode-toggle { display: inline-flex; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; }
+    .mode-button { min-height: 44px; padding: 7px 12px; border: 0; background: var(--color-surface); color: var(--color-text); font-size: 12px; font-weight: 700; }
+    .mode-button[aria-pressed="true"] { background: var(--color-accent); color: #fff; }
+    .slider-mode { display: grid; gap: var(--space-2); }
+    .slider-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 var(--space-2); }
+    .slider-row label { font-size: 12px; }
+    .slider-value { color: var(--color-accent); font-family: var(--font-mono); font-weight: 800; font-variant-numeric: tabular-nums; }
+    .field input[type="range"] { grid-column: 1 / -1; min-height: 32px; padding: 0; border: 0; accent-color: var(--color-accent); }
+    .reset { min-height: 46px; padding: 9px 20px; border: 1px solid var(--color-accent); border-radius: var(--radius); background: var(--color-accent); color: #fff; font-weight: 750; transition: transform var(--ease), background-color var(--ease); }
+    .reset:hover { background: #5427b2; transform: translateY(-1px); }
+    .result-line { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-3); margin: var(--space-3) 0; color: var(--color-muted); font-size: 13px; }
+    .result-line strong { color: var(--color-text); font-variant-numeric: tabular-nums; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--color-border); background: var(--color-surface); }
+    table { width: 100%; min-width: 1180px; border-collapse: collapse; table-layout: fixed; }
+    caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+    th { position: sticky; top: 0; z-index: 2; padding: 13px 14px; background: var(--color-header); color: #fff; font-size: 12px; letter-spacing: .06em; text-align: left; }
+    td { padding: 15px 14px; border-bottom: 1px solid var(--color-border); vertical-align: top; overflow-wrap: anywhere; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr[data-kind="positive"] { background: var(--color-accent-soft); }
+    tbody tr:hover { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+    .index { color: var(--color-muted); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .category { display: inline-block; padding-left: 9px; border-left: 3px solid var(--color-accent); font-size: 13px; font-weight: 750; }
+    .event { font-size: 15px; font-weight: 700; }
+    .muted { color: var(--color-muted); }
+    .impact { white-space: nowrap; font-weight: 700; }
+    .probability { min-width: 175px; }
+    .prob-head { display: flex; justify-content: space-between; gap: var(--space-2); align-items: baseline; margin-bottom: 9px; }
+    .prob-number { color: var(--color-accent); font-family: var(--font-mono); font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .confidence { color: var(--color-muted); font-size: 11px; white-space: nowrap; }
+    .prob-track { height: 11px; border: 1px solid var(--color-border); background: var(--color-surface-alt); }
+    .prob-fill { display: block; width: var(--probability); min-width: 2px; height: 100%; background: var(--color-accent); }
+    .empty { padding: var(--space-6) var(--space-4); border: 1px solid var(--color-border); background: var(--color-surface); text-align: center; }
+    .empty h2 { margin: 0 0 var(--space-2); font-family: var(--font-display); font-size: 30px; }
+    footer { display: flex; justify-content: space-between; gap: var(--space-4); margin: var(--space-5) 0; padding-top: var(--space-4); border-top: 1px solid var(--color-border); color: var(--color-muted); font-size: 13px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; gap: var(--space-4); }
+      .total { width: fit-content; }
+      .controls { grid-template-columns: 1fr 1fr; }
+    }
+    /* 手机和平板窄屏使用事件卡片，而不是压缩或横向滚动桌面表格。 */
+    @media (max-width: 820px) {
+      .shell { width: min(calc(100% - 24px), 1560px); }
+      .hero { gap: var(--space-3); padding: 32px 0 20px; }
+      h1 { max-width: 100%; font-size: clamp(38px, 11vw, 56px); letter-spacing: -.035em; }
+      .event-name { font-size: 18px; }
+      .assumptions { font-size: 14px; }
+      .total { min-width: 0; padding-left: var(--space-3); }
+      .total strong { font-size: 52px; }
+      .notice { padding: 12px 14px; font-size: 14px; }
+      .controls { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); margin: var(--space-4) 0 var(--space-3); padding: 12px; }
+      .selector-heading { align-items: stretch; }
+      .mode-toggle { width: 100%; }
+      .mode-button { flex: 1; min-height: 48px; font-size: 14px; touch-action: manipulation; }
+      .field input, .field select { min-height: 48px; font-size: 16px; }
+      .field input[type="range"] { min-height: 44px; }
+      .reset { min-height: 48px; touch-action: manipulation; }
+      .result-line { font-size: 12px; line-height: 1.6; }
+      .table-wrap { overflow: visible; border: 0; background: transparent; }
+      table, tbody, tr, td { display: block; width: 100%; min-width: 0; }
+      colgroup { display: none; }
+      thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+      tbody { display: grid; gap: 12px; }
+      tbody tr { min-width: 0; padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
+      td { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: var(--space-2); min-width: 0; padding: 10px 0; border-bottom: 1px solid var(--color-border); }
+      td::before { content: attr(data-label); color: var(--color-muted); font-size: 12px; font-weight: 700; }
+      td:last-child { border-bottom: 0; }
+      .event { font-size: 16px; line-height: 1.55; }
+      .probability { min-width: 0; }
+      .prob-head { grid-column: 2; width: 100%; }
+      .prob-track { grid-column: 2; width: 100%; height: 12px; }
+      .prob-number { font-size: 18px; }
+      .empty { padding: 32px 16px; }
+      footer { flex-direction: column; margin: 32px 0; font-size: 12px; }
+    }
+    @media (max-width: 360px) {
+      .shell { width: calc(100% - 16px); }
+      h1 { font-size: 38px; }
+      .controls, tbody tr { padding: 10px; }
+      td { grid-template-columns: 68px minmax(0, 1fr); }
+      .mode-button { padding: 6px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
+    @media print {
+      body { background: #fff; }
+      .controls, .skip-link { display: none; }
+      .shell { width: 100%; }
+      .table-wrap { overflow: visible; }
+      table { min-width: 0; font-size: 10px; }
+      th { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#results">跳到可能性列表</a>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Scenario index / 情景概率索引</p>
+        <h1>这次事件的概率</h1>
+        <p class="event-name" id="event-name"></p>
+        <p class="assumptions" id="assumptions"></p>
+      </div>
+      <div class="total" aria-label="可能性总数">
+        <strong id="total-count">0</strong>
+        <span>种可能性</span>
+      </div>
+    </header>
+
+    <div class="notice" role="note">本项目及其所有生成内容仅供娱乐，不构成任何专业意见、决策依据或行动建议。内容由 AI 基于假设生成，可能存在错误、遗漏或偏差，使用者须自行核实、独立判断，并自行承担使用、参考、依赖或传播本项目及生成内容所造成的一切直接或间接后果。开发者 PT-dove 不承担任何法律、经济或其他责任。</div>
+
+    <section class="controls" aria-label="筛选可能性">
+      <div class="field">
+        <div class="selector-heading">
+          <label for="probability-filter">概率选择器</label>
+          <div class="mode-toggle" role="group" aria-label="概率选择方式">
+            <button class="mode-button" id="list-mode-button" type="button" aria-pressed="true">列表选择</button>
+            <button class="mode-button" id="slider-mode-button" type="button" aria-pressed="false">滑块选择</button>
+          </div>
+        </div>
+        <div id="list-mode">
+          <select id="probability-filter">
+            <option value="all">全部概率</option>
+          </select>
+        </div>
+        <div class="slider-mode" id="slider-mode" hidden>
+          <div class="slider-row">
+            <label for="min-probability">最低概率</label>
+            <output class="slider-value" id="min-probability-value" for="min-probability">0%</output>
+            <input id="min-probability" type="range" min="0" max="100" step="0.001" value="0">
+          </div>
+          <div class="slider-row">
+            <label for="max-probability">最高概率</label>
+            <output class="slider-value" id="max-probability-value" for="max-probability">100%</output>
+            <input id="max-probability" type="range" min="0" max="100" step="0.001" value="100">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="category-filter">事件方向</label>
+        <select id="category-filter">
+          <option value="all">全部事件</option>
+          <option value="positive">仅正向事件</option>
+          <option value="negative">仅负向事件</option>
+          <option value="legal">仅法律事件</option>
+          <option value="extreme">仅极端事件</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="search">搜索细分选项</label>
+        <input id="search" type="search" placeholder="输入事件、条件或应对" autocomplete="off">
+      </div>
+      <button class="reset" id="reset" type="button">重置筛选</button>
+    </section>
+
+    <div class="result-line">
+      <span id="result-count" aria-live="polite"></span>
+      <span>正向：概率由高到低 ↓　｜　负向：概率由低到高 ↑　｜　各情景可共存，概率不相加</span>
+    </div>
+
+    <section id="results" aria-label="事件概率表">
+      <div class="table-wrap" id="table-wrap">
+        <table>
+          <caption>这次事件的可能性、概率、影响、依据和应对</caption>
+          <colgroup>
+            <col style="width: 58px"><col style="width: 120px"><col style="width: 24%">
+            <col style="width: 90px"><col style="width: 25%"><col style="width: 25%"><col style="width: 190px">
+          </colgroup>
+          <thead><tr><th>序号</th><th>分类</th><th>可能事件</th><th>影响</th><th>依据／触发条件</th><th>预防／应对</th><th>概率条</th></tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty" hidden>
+        <h2>没有符合这些条件的情景</h2>
+        <p>试试更宽的概率范围，或清空搜索词。</p>
+        <button class="reset" id="empty-reset" type="button">查看全部可能性</button>
+      </div>
+    </section>
+
+    <footer>
+      <span>概率为基于假设的粗粒度情景估计，并非现实统计或确定预言。</span>
+      <span>本项目及其所有生成内容仅供娱乐，不构成任何专业意见、决策依据或行动建议。内容由 AI 基于假设生成，可能存在错误、遗漏或偏差，使用者须自行核实、独立判断，并自行承担使用、参考、依赖或传播本项目及生成内容所造成的一切直接或间接后果。开发者 PT-dove 不承担任何法律、经济或其他责任。</span>
+    </footer>
+  </main>
+
+  <script id="probability-data" type="application/json">__PROBABILITY_DATA__</script>
+  <script>
+    "use strict";
+    const data = JSON.parse(document.getElementById("probability-data").textContent);
+    const kindOf = category => category.startsWith("正向·") || category.startsWith("Positive·") ? "positive" : category === "负向·法律" || category === "Negative·Legal" ? "legal" : category === "负向·极端" || category === "Negative·Extreme" ? "extreme" : "negative";
+    const items = data.items.map((item, index) => ({
+      category: item[0], event: item[1], probability: item[2], impact: item[3],
+      trigger: item[4], advice: item[5], confidence: item[6], kind: kindOf(item[0]), source: index
+    })).sort((a, b) => {
+      const aPositive = a.kind === "positive";
+      const bPositive = b.kind === "positive";
+      if (aPositive !== bPositive) return aPositive ? -1 : 1;
+      if (a.probability !== b.probability) return aPositive ? b.probability - a.probability : a.probability - b.probability;
+      return a.source - b.source;
+    });
+    const percent = value => `${Number(value.toFixed(4))}%`;
+    const byId = id => document.getElementById(id);
+    const probabilityFilter = byId("probability-filter");
+    const categoryFilter = byId("category-filter");
+    const minProbability = byId("min-probability");
+    const maxProbability = byId("max-probability");
+    const search = byId("search");
+    const tbody = byId("table-body");
+    let selectorMode = "list";
+
+    byId("event-name").textContent = `事件：${data.event}`;
+    byId("assumptions").textContent = `估计条件：${data.assumptions}`;
+    byId("total-count").textContent = items.length;
+
+    function addOption(parent, value, label) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      parent.appendChild(option);
+    }
+    const rangeGroup = document.createElement("optgroup");
+    rangeGroup.label = "按概率范围";
+    [[0,0.01],[0.01,0.1],[0.1,1],[1,5],[5,10],[10,20],[20,40],[40,60],[60,80],[80,100]].forEach(([min, max]) => {
+      addOption(rangeGroup, `range:${min}:${max}`, `${percent(min)} < P ≤ ${percent(max)}`);
+    });
+    probabilityFilter.appendChild(rangeGroup);
+    const exactGroup = document.createElement("optgroup");
+    exactGroup.label = "按具体概率";
+    [...new Set(items.map(item => item.probability))].sort((a, b) => a - b).forEach(value => {
+      addOption(exactGroup, `exact:${value}`, `恰好 ${percent(value)}`);
+    });
+    probabilityFilter.appendChild(exactGroup);
+
+    function textCell(label, value, className) {
+      const cell = document.createElement("td");
+      cell.dataset.label = label;
+      cell.className = className || "";
+      cell.textContent = value;
+      return cell;
+    }
+    function probabilityCell(item) {
+      const cell = document.createElement("td");
+      cell.dataset.label = "概率条";
+      cell.className = "probability";
+      const head = document.createElement("div");
+      head.className = "prob-head";
+      const number = document.createElement("span");
+      number.className = "prob-number";
+      number.textContent = percent(item.probability);
+      const confidence = document.createElement("span");
+      confidence.className = "confidence";
+      confidence.textContent = `把握 ${item.confidence}`;
+      head.append(number, confidence);
+      const track = document.createElement("div");
+      track.className = "prob-track";
+      track.setAttribute("role", "img");
+      track.setAttribute("aria-label", `估计概率约 ${percent(item.probability)}`);
+      const fill = document.createElement("span");
+      fill.className = "prob-fill";
+      fill.style.setProperty("--probability", percent(item.probability));
+      track.appendChild(fill);
+      cell.append(head, track);
+      return cell;
+    }
+    function probabilityMatches(value, filter) {
+      if (selectorMode === "slider") return value >= Number(minProbability.value) && value <= Number(maxProbability.value);
+      if (filter === "all") return true;
+      const parts = filter.split(":");
+      if (parts[0] === "exact") return value === Number(parts[1]);
+      return value > Number(parts[1]) && value <= Number(parts[2]);
+    }
+    function updateSliderLabels() {
+      byId("min-probability-value").textContent = percent(Number(minProbability.value));
+      byId("max-probability-value").textContent = percent(Number(maxProbability.value));
+    }
+    function setSelectorMode(mode) {
+      selectorMode = mode;
+      const isList = mode === "list";
+      byId("list-mode").hidden = !isList;
+      byId("slider-mode").hidden = isList;
+      byId("list-mode-button").setAttribute("aria-pressed", String(isList));
+      byId("slider-mode-button").setAttribute("aria-pressed", String(!isList));
+      render();
+    }
+    function render() {
+      const query = search.value.trim().toLocaleLowerCase("zh-CN");
+      const direction = categoryFilter.value;
+      const probability = probabilityFilter.value;
+      const filtered = items.filter(item => {
+        const categoryMatches = direction === "all" || (direction === "negative" ? item.kind !== "positive" : item.kind === direction);
+        const text = `${item.category} ${item.event} ${item.trigger} ${item.advice}`.toLocaleLowerCase("zh-CN");
+        return categoryMatches && probabilityMatches(item.probability, probability) && (!query || text.includes(query));
+      });
+      const fragment = document.createDocumentFragment();
+      filtered.forEach((item, index) => {
+        const row = document.createElement("tr");
+        row.dataset.kind = item.kind;
+        row.append(
+          textCell("序号", String(index + 1).padStart(3, "0"), "index"),
+          textCell("分类", item.category, "category"),
+          textCell("可能事件", item.event, "event"),
+          textCell("影响", item.impact, "impact"),
+          textCell("依据／触发条件", item.trigger, "muted"),
+          textCell("预防／应对", item.advice, "muted"),
+          probabilityCell(item)
+        );
+        fragment.appendChild(row);
+      });
+      tbody.replaceChildren(fragment);
+      byId("result-count").innerHTML = `当前显示 <strong>${filtered.length}</strong> 条／共 <strong>${items.length}</strong> 条`;
+      byId("table-wrap").hidden = filtered.length === 0;
+      byId("empty").hidden = filtered.length !== 0;
+    }
+    function reset() {
+      probabilityFilter.value = "all";
+      categoryFilter.value = "all";
+      minProbability.value = "0";
+      maxProbability.value = "100";
+      search.value = "";
+      updateSliderLabels();
+      render();
+    }
+    probabilityFilter.addEventListener("change", render);
+    categoryFilter.addEventListener("change", render);
+    minProbability.addEventListener("input", () => {
+      if (Number(minProbability.value) > Number(maxProbability.value)) maxProbability.value = minProbability.value;
+      updateSliderLabels();
+      render();
+    });
+    maxProbability.addEventListener("input", () => {
+      if (Number(maxProbability.value) < Number(minProbability.value)) minProbability.value = maxProbability.value;
+      updateSliderLabels();
+      render();
+    });
+    byId("list-mode-button").addEventListener("click", () => setSelectorMode("list"));
+    byId("slider-mode-button").addEventListener("click", () => setSelectorMode("slider"));
+    search.addEventListener("input", render);
+    byId("reset").addEventListener("click", reset);
+    byId("empty-reset").addEventListener("click", reset);
+    updateSliderLabels();
+    render();
+  </script>
+</body>
+</html>
