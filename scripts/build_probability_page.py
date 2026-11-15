@@ -11,17 +11,21 @@ IMPACTS = {"低", "中", "高", "极高", "Low", "Medium", "High", "Critical"}
 CONFIDENCE = {"高", "中", "低", "High", "Medium", "Low"}
 MIN_ITEMS = 100
 MAX_ITEMS = 500
+MIN_NEGATIVE_MULTIPLIER = 1.20
+MAX_NEGATIVE_MULTIPLIER = 1.35
 
 EN_REPLACEMENTS = [
-    ("这次事件的可能性、概率、影响、依据和应对", "Scenarios, probabilities, impacts, triggers, and actions for this event"),
+    ("本次 AI 预测的可能性、概率、影响、依据和应对", "AI-predicted scenarios, probabilities, impacts, triggers, and actions for this event"),
+    ("aria-label=\"本次 AI 预测的可能性总数\"", "aria-label=\"AI-predicted scenario total\""),
+    ("<span class=\"total-kicker\">本次 AI 预测</span>", "<span class=\"total-kicker\">AI predicted</span>"),
+    ("正向 0 · 负向 0", "Positive 0 · Negative 0"),
     ("lang=\"zh-CN\"", "lang=\"en\""),
     ("事件可能性与概率情景分析", "Scenario and probability analysis for an event"),
     ("本项目及其所有生成内容仅供娱乐，不构成任何专业意见、决策依据或行动建议。内容由 AI 基于假设生成，可能存在错误、遗漏或偏差，使用者须自行核实、独立判断，并自行承担使用、参考、依赖或传播本项目及生成内容所造成的一切直接或间接后果。开发者 PT-dove 不承担任何法律、经济或其他责任。", "This project and all generated content are for entertainment only and do not constitute professional advice, a basis for decision-making, or recommendations for action. AI-generated content may contain errors, omissions, or bias. Users must independently verify all information and accept sole responsibility for every direct or indirect consequence of using, relying on, or distributing this project or its content. PT-dove accepts no legal, financial, or other liability."),
     ("这次事件的概率", "Probability of This Event"),
-    ("Scenario index / 情景概率索引", "Scenario index"),
+    ("AI scenario index / AI 预测情景索引", "AI-predicted scenario index"),
     ("跳到可能性列表", "Skip to scenario list"),
     ("可能性总数", "Total scenarios"),
-    ("种可能性", "scenarios"),
     ("概率选择方式", "Probability selector mode"),
     ("概率选择器", "Probability"),
     ("列表选择", "List"),
@@ -54,7 +58,10 @@ EN_REPLACEMENTS = [
     ("恰好 ", "Exactly "),
     ("把握 ${item.confidence}", "Confidence ${item.confidence}"),
     ("估计概率约 ${percent(item.probability)}", "Estimated probability ${percent(item.probability)}"),
-    ("当前显示 <strong>${filtered.length}</strong> 条／共 <strong>${items.length}</strong> 条", "Showing <strong>${filtered.length}</strong> of <strong>${items.length}</strong> scenarios"),
+    ("`正向 ${positiveCount} · 负向 ${negativeCount}`", "`Positive ${positiveCount} · Negative ${negativeCount}`"),
+    ("`本次 AI 预测 ${items.length} 种可能性，正向 ${positiveCount}，负向 ${negativeCount}`", "`AI predicted ${items.length} scenarios: ${positiveCount} positive and ${negativeCount} negative`"),
+    ("当前显示 <strong>${filtered.length}</strong> 条／本次 AI 共预测 <strong>${items.length}</strong> 种可能性", "Showing <strong>${filtered.length}</strong> of <strong>${items.length}</strong> AI-predicted scenarios"),
+    ("种可能性", "scenarios"),
 ]
 
 
@@ -115,6 +122,13 @@ def load_and_validate(path):
     negative = sorted((x for x in normalized if x[0].startswith(negative_prefix)), key=lambda x: x[2])
     if not positive or not negative:
         raise ValueError("At least one positive and one negative scenario are required")
+    minimum_negative = math.ceil(len(positive) * MIN_NEGATIVE_MULTIPLIER)
+    maximum_negative = math.floor(len(positive) * MAX_NEGATIVE_MULTIPLIER)
+    if not minimum_negative <= len(negative) <= maximum_negative:
+        raise ValueError(
+            f"Negative scenario count must be 20%–35% higher than positive: "
+            f"{len(positive)} positive requires {minimum_negative}–{maximum_negative} negative, got {len(negative)}"
+        )
     data["items"] = positive + negative
     return data
 
@@ -133,7 +147,9 @@ def main():
         data = load_and_validate(args.input)
         positive_prefix = LANGUAGE_DIRECTIONS[data["language"]][0] + "·"
         positive_count = sum(item[0].startswith(positive_prefix) for item in data["items"])
-        summary = f"Validated: {len(data['items'])} scenarios (positive {positive_count}, negative {len(data['items']) - positive_count}, language {data['language']})"
+        negative_count = len(data["items"]) - positive_count
+        premium = (negative_count / positive_count - 1) * 100
+        summary = f"Validated: {len(data['items'])} scenarios (positive {positive_count}, negative {negative_count}, negative premium {premium:.1f}%, language {data['language']})"
         if args.check_only:
             print(summary)
             return

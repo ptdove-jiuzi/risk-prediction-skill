@@ -8,7 +8,7 @@
 
 ## 快速下载
 
-- **[下载 v1.1.1 ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/tags/v1.1.1.zip)** —— 推荐
+- **[下载 v1.1.2 ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/tags/v1.1.2.zip)** —— 推荐
 - [下载最新源码 ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/heads/main.zip)
 - [查看 SKILL.md](SKILL.md)
 
@@ -46,6 +46,9 @@ python scripts/configure_language.py zh-CN
 - 表格与网页共用`正向·小分类`、`负向·小分类`及对应英文分类。
 - 正向事件按概率从高到低，负向事件按概率从低到高。
 - 100–500 条详细网页情景，支持非零极小概率。
+- 页面明确写出“本次 AI 预测了多少种可能性”，并拆分正向与负向数量。
+- 负向情景永远比正向多 20%–35%，由构建脚本强制校验。
+- 部分负向情景采用多层因果链，展示小动作如何引出第二个风险，并给出最早阻断点。
 - 下拉列表与双滑块概率选择器。
 - 电脑表格与 820px 以下手机事件卡片。
 - 无外部依赖的离线单文件网页。
@@ -61,7 +64,7 @@ python scripts/configure_language.py zh-CN
 
 ## 版本规则
 
-后续每次更新只在版本号最后一位增加 **0.0.1**。当前版本为 **v1.1.1**，下次更新为 v1.1.2。
+后续每次更新只在版本号最后一位增加 **0.0.1**。当前版本为 **v1.1.2**，下次更新为 v1.1.3。
 
 ## 免责声明
 

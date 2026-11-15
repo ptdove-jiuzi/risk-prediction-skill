@@ -61,6 +61,8 @@
     .total { min-width: 190px; padding-left: var(--space-4); border-left: 5px solid var(--color-accent); }
     .total strong { display: block; color: var(--color-accent); font-family: var(--font-mono); font-size: clamp(52px, 7vw, 88px); font-variant-numeric: tabular-nums; letter-spacing: -.07em; line-height: 1; }
     .total span { display: block; margin-top: var(--space-2); font-weight: 700; }
+    .total .total-kicker { margin: 0 0 6px; color: var(--color-muted); font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+    .total .total-split { margin-top: 6px; color: var(--color-muted); font-size: 12px; font-weight: 650; }
     .notice { margin: var(--space-4) 0; padding: 14px 18px; border-left: 4px solid var(--color-accent); background: var(--color-accent-soft); font-weight: 750; text-align: center; }
     .controls { display: grid; grid-template-columns: 1.2fr 1.2fr 1fr auto; gap: var(--space-3); align-items: end; margin: var(--space-5) 0 var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); background: var(--color-surface); }
     .field { display: grid; gap: 6px; }
@@ -168,14 +170,16 @@
   <main class="shell">
     <header class="hero">
       <div>
-        <p class="eyebrow">Scenario index / 情景概率索引</p>
+        <p class="eyebrow">AI scenario index / AI 预测情景索引</p>
         <h1>这次事件的概率</h1>
         <p class="event-name" id="event-name"></p>
         <p class="assumptions" id="assumptions"></p>
       </div>
-      <div class="total" aria-label="可能性总数">
+      <div class="total" id="total-block" aria-label="本次 AI 预测的可能性总数">
+        <span class="total-kicker">本次 AI 预测</span>
         <strong id="total-count">0</strong>
         <span>种可能性</span>
+        <span class="total-split" id="total-split">正向 0 · 负向 0</span>
       </div>
     </header>
 
@@ -233,7 +237,7 @@
     <section id="results" aria-label="事件概率表">
       <div class="table-wrap" id="table-wrap">
         <table>
-          <caption>这次事件的可能性、概率、影响、依据和应对</caption>
+          <caption>本次 AI 预测的可能性、概率、影响、依据和应对</caption>
           <colgroup>
             <col style="width: 58px"><col style="width: 120px"><col style="width: 24%">
             <col style="width: 90px"><col style="width: 25%"><col style="width: 25%"><col style="width: 190px">
@@ -282,7 +286,11 @@
 
     byId("event-name").textContent = `事件：${data.event}`;
     byId("assumptions").textContent = `估计条件：${data.assumptions}`;
+    const positiveCount = items.filter(item => item.kind === "positive").length;
+    const negativeCount = items.length - positiveCount;
     byId("total-count").textContent = items.length;
+    byId("total-split").textContent = `正向 ${positiveCount} · 负向 ${negativeCount}`;
+    byId("total-block").setAttribute("aria-label", `本次 AI 预测 ${items.length} 种可能性，正向 ${positiveCount}，负向 ${negativeCount}`);
 
     function addOption(parent, value, label) {
       const option = document.createElement("option");
@@ -379,7 +387,7 @@
         fragment.appendChild(row);
       });
       tbody.replaceChildren(fragment);
-      byId("result-count").innerHTML = `当前显示 <strong>${filtered.length}</strong> 条／共 <strong>${items.length}</strong> 条`;
+      byId("result-count").innerHTML = `当前显示 <strong>${filtered.length}</strong> 条／本次 AI 共预测 <strong>${items.length}</strong> 种可能性`;
       byId("table-wrap").hidden = filtered.length === 0;
       byId("empty").hidden = filtered.length !== 0;
     }

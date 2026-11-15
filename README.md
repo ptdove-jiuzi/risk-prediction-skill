@@ -8,7 +8,7 @@ A multilingual scenario-generation Skill for exploring positive and negative pos
 
 ## Download
 
-- **[Download v1.1.1 ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/tags/v1.1.1.zip)** — recommended
+- **[Download v1.1.2 ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/tags/v1.1.2.zip)** — recommended
 - [Download latest source ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/heads/main.zip)
 - [Open SKILL.md](SKILL.md)
 
@@ -46,6 +46,9 @@ python scripts/configure_language.py zh-CN
 - One shared `Positive·Subject` / `Negative·Subject` and `正向·小分类` / `负向·小分类` taxonomy across tables and webpages.
 - Positive scenarios sorted from high to low probability, followed by negative scenarios from low to high.
 - Detailed HTML reports with 100–500 scenarios, including clearly marked extremely small probabilities.
+- The page states exactly how many scenarios the AI predicted and splits the total into positive and negative counts.
+- Negative scenarios are always 20%–35% more numerous than positive scenarios, enforced by the builder.
+- Multi-step causal chains show how a small distraction or workaround can expose a second hazard, with an early break point.
 - Dropdown and dual-slider probability selectors.
 - Desktop tables and dedicated mobile event cards at widths of 820px or less.
 - Offline single-file output with no external web dependencies.
@@ -61,6 +64,7 @@ risk-prediction-skill/
 ├── assets/
 │   └── probability-page-template.html
 ├── references/
+│   ├── causal-chains.md
 │   ├── category-taxonomy.md
 │   ├── language-and-disclaimer.md
 │   ├── output-contract.md
@@ -78,7 +82,7 @@ risk-prediction-skill/
 
 ## Versioning
 
-Each future update advances the version by **0.0.1** only. The current release is **v1.1.1**; the next update will be v1.1.2.
+Each future update advances the version by **0.0.1** only. The current release is **v1.1.2**; the next update will be v1.1.3.
 
 ## Disclaimer
 
