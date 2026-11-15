@@ -8,7 +8,7 @@ A multilingual scenario-generation Skill for exploring positive and negative pos
 
 ## Download
 
-- **[Download v1.1.0 ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/tags/v1.1.0.zip)** — recommended
+- **[Download v1.1.1 ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/tags/v1.1.1.zip)** — recommended
 - [Download latest source ZIP](https://github.com/ptdove-jiuzi/risk-prediction-skill/archive/refs/heads/main.zip)
 - [Open SKILL.md](SKILL.md)
 
@@ -40,6 +40,7 @@ python scripts/configure_language.py zh-CN
 ## Included
 
 - Installation-time language selection: English or Chinese.
+- A start greeting explains the Skill's purpose and lets the user choose a simple Markdown table or a detailed HTML report.
 - One-time first-use context intake for city, Agent application, optional real-time time/system access, and optional age, height, weight, and relevant health context.
 - A clear privacy notice explains that this information stays in the current conversation and is not uploaded to GitHub, written into the Skill, or sent to third parties.
 - One shared `Positive·Subject` / `Negative·Subject` and `正向·小分类` / `负向·小分类` taxonomy across tables and webpages.
@@ -66,6 +67,7 @@ risk-prediction-skill/
 │   ├── probability-guide.md
 │   ├── risk-taxonomy.md
 │   ├── safety-and-evidence.md
+│   ├── start-greeting.md
 │   ├── token-efficiency.md
 │   ├── user-context-onboarding.md
 │   └── web-mode.md
@@ -73,6 +75,10 @@ risk-prediction-skill/
     ├── build_probability_page.py
     └── configure_language.py
 ```
+
+## Versioning
+
+Each future update advances the version by **0.0.1** only. The current release is **v1.1.1**; the next update will be v1.1.2.
 
 ## Disclaimer
 

@@ -1,6 +1,6 @@
 ---
 name: risk-prediction-skill
-description: This skill should be used when the user describes an intended action, plan, event, project, journey, purchase, investment, publication, conversation, or other situation and asks to predict risks, foresee what might happen, identify positive or negative outcomes, uncover hidden dangers, assess legal exposure, or make a contingency plan. It produces a scenario table covering opportunities as well as ordinary, serious, and catastrophic negative events, with calibrated probability estimates, impacts, triggers, and practical mitigations. When the user requests detailed sub-options, an expanded possibility list, a web version, or an interactive probability page, it generates a self-contained HTML page titled “这次事件的概率” with 100 or more scenarios, list and slider percentage filters, and probability bars. It supports Chinese prompts such as “预判未来”“预知风险”“细分选项”“我做……可能遇到什么”“这件事有什么法律风险” and “帮我列一下好运和坏结果”. Before the first substantive analysis, it asks once for city, Agent application, optional real-time time/system access, and optional age, height, weight, and relevant health context, with a clear promise that the information stays in the current conversation and is not uploaded.
+description: This skill should be used when the user describes an intended action, plan, event, project, journey, purchase, investment, publication, conversation, or other situation and asks to predict risks, foresee what might happen, identify positive or negative outcomes, uncover hidden dangers, assess legal exposure, or make a contingency plan. It produces a scenario table covering opportunities as well as ordinary, serious, and catastrophic negative events, with calibrated probability estimates, impacts, triggers, and practical mitigations. When the user requests detailed sub-options, an expanded possibility list, a web version, or an interactive probability page, it generates a self-contained HTML page titled “这次事件的概率” with 100 or more scenarios, list and slider percentage filters, and probability bars. It supports Chinese prompts such as “预判未来”“预知风险”“细分选项”“我做……可能遇到什么”“这件事有什么法律风险” and “帮我列一下好运和坏结果”. At the start of a conversation, it explains its purpose, offers a simple table or an HTML report, and then asks once for city, Agent application, optional real-time time/system access, and optional age, height, weight, and relevant health context, with a clear promise that the information stays in the current conversation and is not uploaded.
 agent_created: true
 ---
 
@@ -9,6 +9,14 @@ agent_created: true
 ## Purpose
 
 Analyze plausible future scenarios rather than claim supernatural foresight. Balance beneficial opportunities with dangerous events, and convert vague worry into actionable prevention and contingency steps. State assumptions, distinguish evidence from speculation, and never present an estimate as a certainty.
+
+## Start Greeting and Output Choice
+
+Read `references/start-greeting.md`. After the output language is known and before the first substantive analysis, greet the user once and explain the Skill's purpose: it turns a planned action into comparable positive and negative scenarios with probabilities, impacts, triggers, and practical actions; it is scenario analysis, not a certain prediction.
+
+In the same greeting, offer exactly two output modes: a simple Markdown table for a quick overview, or an HTML page for the detailed, filterable, mobile-ready “这次事件的概率” report. Accept “table”, “HTML”, or an equivalent in the selected language. If the user does not choose, default to the simple table and note that HTML is available. Do not repeat the greeting in the same conversation or force HTML generation.
+
+After the choice, show the privacy notice and ask for the first-use context once, as specified in `references/user-context-onboarding.md`.
 
 ## Language and Central Disclaimer
 
@@ -42,9 +50,9 @@ Use `assets/probability-page-template.html` and `scripts/build_probability_page.
 
 ## Workflow
 
-### 0. Offer first-use context intake
+### 0. Greet, choose a mode, and collect context
 
-After language selection and before the first substantive analysis, show the privacy notice and ask the compact context form from `references/user-context-onboarding.md`. Ask once per conversation. If the user declines or skips items, continue with explicit assumptions; do not block the task or ask again.
+After language selection and before the first substantive analysis, show the greeting from `references/start-greeting.md`, explain the Skill's purpose, and ask whether the user wants a simple Markdown table or an HTML page. Record the choice without repeating the question. Then show the privacy notice and ask the compact context form from `references/user-context-onboarding.md`. Ask once per conversation. If the user declines or skips items, continue with explicit assumptions; do not block the task or ask again.
 
 ### 1. Parse the event
 
@@ -92,6 +100,7 @@ Start with one short assumptions line in the selected language, followed by the 
 
 ## Reference Map
 
+- Use `references/start-greeting.md` for the initial purpose explanation, table/HTML choice, and output-mode switching.
 - Use `references/language-and-disclaimer.md` for installation language selection, localization, central disclaimers, and attribution limits.
 - Use `references/user-context-onboarding.md` for first-use questions, Agent capability handling, and transient profile privacy.
 - Use `references/category-taxonomy.md` as the single shared category vocabulary for both Markdown tables and HTML pages.
